@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HTCH — Networking Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0c0f13; --bg2:#141921; --card:#151a22;
+      --ink:#e9ecf1; --muted:#aab0bb; --border:#222834;
+      --pill-start:#6f57ee; --pill-end:#56c3ff; --ok:#6bd79a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial}
+    .topbar{position:sticky;top:0;z-index:10;background:rgba(15,18,24,.8);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--border)}
+    .nav{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:12px 16px}
+    .brand{font-weight:700;letter-spacing:.2px}
+    .links{display:flex;gap:8px;margin-left:6px}
+    .links a{color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:999px}
+    .links a.active{background:linear-gradient(90deg,var(--pill-start),var(--pill-end));color:#fff}
+    .links a:hover{color:#fff}
+    .cta{margin-left:auto;background:linear-gradient(90deg,var(--pill-start),var(--pill-end));border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+
+    .wrap{max-width:1180px;margin:22px auto;padding:0 16px}
+    .hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+    .hero h1{margin:0;font-size:22px}
+    .hero p{margin:6px 0 0;color:var(--muted)}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .grid{display:grid;grid-template-columns:1.4fr .9fr;gap:16px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+    .card h2{margin:0 0 10px 0;font-size:16px}
+    .sub{color:var(--muted);font-size:13px}
+
+    /* Leaderboard */
+    table{width:100%;border-collapse:separate;border-spacing:0 6px}
+    thead th{color:var(--muted);font-weight:600;text-align:left;padding:8px 10px}
+    tbody tr{background:var(--bg2);border:1px solid var(--border)}
+    tbody td{padding:10px}
+    tr.me{outline:2px solid rgba(111,87,238,.35);background:linear-gradient(0deg,rgba(111,87,238,.08),transparent)}
+    .rank{width:64px;color:#cbd3e0}
+    .pts{text-align:right;font-variant-numeric:tabular-nums}
+
+    /* Tasks, badges, progress, pills */
+    .task{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--bg2);margin:6px 0}
+    .task small{color:var(--muted)} .done{color:var(--ok);font-weight:600}
+    .task button,.pill{background:linear-gradient(90deg,var(--pill-start),var(--pill-end));border:none;color:#fff;border-radius:999px;padding:7px 12px;cursor:pointer}
+    .pill.active {
+    box-shadow: 0 0 0 2px rgba(111,87,238,.55), 0 0 0 5px rgba(111,87,238,.18);
+    filter: brightness(1.08);
+    }
+    .task button:hover,.pill:hover{filter:brightness(1.07)}
+    .badges{display:flex;flex-wrap:wrap;gap:8px}
+    .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:var(--bg2);color:#d7daf0}
+    .meter{height:10px;background:#1c2330;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--pill-start),var(--pill-end))}
+
+    /* Modals */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50}
+    .modal{max-width:680px;margin:8vh auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+    textarea{width:100%;min-height:120px;background:#0f141c;color:#e9ecf1;border:1px solid var(--border);border-radius:10px;padding:10px}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">HTCH</div>
+      <div class="links">
+        <a href="/game" class="active">Networking Game</a>
+      </div>
+      <button class="cta" disabled>Sign up with LinkedIn</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1>Networking Game Mode</h1>
+        <p>Practice outreach, prep coffee chats, pick follow-ups, and build reciprocity — then compete on the leaderboard.</p>
+      </div>
+      <div class="row">
+        <button id="start-outreach"    class="pill">Outreach</button>
+        <button id="start-coffee"      class="pill">Coffee-Chat</button>
+        <button id="start-followup"    class="pill">Follow-Up</button>
+        <button id="start-reciprocity" class="pill">Reciprocity</button>
+        <button id="open-coach"        class="pill">Ask the Coach</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>Leaderboard</h2>
+          <div class="sub">Anonymized — last 7 days</div>
+          <table>
+            <thead><tr><th class="rank">Rank</th><th>Name</th><th class="pts">Points</th></tr></thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Weekly Missions</h2>
+          <div id="weekly-list"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Your Progress</h2>
+          <div class="sub">
+            Level: <span id="level-name">Rookie Connector</span>
+            · Streak: <span id="streak">0</span> days
+            · Points: <span id="points">0</span>
+          </div>
+          <div class="meter" style="margin-top:10px;">
+            <div id="xp-bar" class="bar"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Badges</h2>
+          <div id="badges" class="badges"></div>
+        </div>
+
+        <div class="card">
+          <h2>Daily Missions</h2>
+          <div id="daily-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quest Modal -->
+  <div id="quest-modal" class="overlay">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h2 id="quest-title" style="margin:0;">Quest</h2>
+        <button id="close-quest" class="pill" style="opacity:.9;">Close</button>
+      </div>
+
+      <p id="quest-prompt" class="sub" style="margin:4px 0 10px;"></p>
+
+      <!-- Only visible for Follow-Up quest -->
+      <div id="followup-choices" class="row" style="display:none;margin-bottom:8px;">
+        <button class="pill" data-choice="monday">Monday</button>
+        <button class="pill" data-choice="48h">48h</button>
+        <button class="pill" data-choice="2 days">2 days</button>
+        <button class="pill" data-choice="early next week">Early next week</button>
+      </div>
+
+      <textarea id="quest-text" placeholder="Type your message/questions here..."></textarea>
+
+      <div class="row" style="justify-content:space-between;margin-top:10px;align-items:center;">
+        <div class="row">
+          <button id="score-quest"   class="pill">Score</button>
+        </div>
+        <div class="sub" id="score-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coach Chat Modal -->
+  <div id="coach-modal" class="overlay">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h2 style="margin:0;">Coach</h2>
+        <button id="coach-close" class="pill" style="opacity:.9;">Close</button>
+      </div>
+      <div id="coach-feed" style="height:180px;overflow:auto;border:1px solid var(--border);border-radius:10px;background:#0f141c;padding:10px;color:#d6d9e6;margin-bottom:8px;"></div>
+      <textarea id="coach-input" placeholder="Ask a follow-up (e.g., ‘How do I personalize for a researcher?’)"></textarea>
+      <div class="row" style="justify-content:flex-end;margin-top:10px;">
+        <div class="sub" id="coach-status" style="margin-right:auto;"></div>
+        <button id="coach-send" class="pill">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wrap" style="margin-top:20px;color:#8f98a8;">
+    Built at TechNova — HTCH: safe, smart networking for students (with a focus on women & underrepresented groups).
+  </footer>
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='gamescript.js') }}?v=10"></script>
+</body>
+</html>

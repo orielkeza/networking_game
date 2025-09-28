@@ -1,0 +1,19 @@
+{
+    "users": {
+        "Player-001": {
+            "username": "Player-001",
+            "points": 3,
+            "level": "Rookie Connector",
+            "badges": [],
+            "streak": 0,
+            "last_active": null,
+            "tasks": [
+                {
+                    "id": "d1759074632546544",
+                    "description": "Send a personalized intro message to a mentor or peer.",
+                    "points": 5,
+                    "category": "daily",
+                    "module_name": null,
+                    "hint": null,
+                    "completed": false,
+                    "due_date": 
